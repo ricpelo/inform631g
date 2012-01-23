@@ -1,0 +1,50 @@
+Index: veneer.c
+===================================================================
+RCS file: /cygdrive/c/Temp/Inform6/cvsroot/inform/compiler/veneer.c,v
+retrieving revision 1.12
+retrieving revision 1.13
+diff -u -r1.12 -r1.13
+--- veneer.c	1 Sep 2004 23:02:56 -0000	1.12
++++ veneer.c	3 Sep 2004 00:41:10 -0000	1.13
+@@ -226,7 +226,6 @@
+          {   if (identifier >= 1 && identifier < 64 && obj.#identifier <= 2)\
+                  return obj.identifier;\
+              RT__Err(\"read\", obj, identifier); return; }\
+-         if (obj.#identifier > 2) RT__Err(\"read\", obj, identifier, 2);\
+          return x-->0;\
+          ]", "", "", "", "", ""
+     },
+@@ -1019,7 +1018,7 @@
+             the need for a full metaclass inheritance scheme.
+         */
+         "CA__Pr",
+-        "_vararg_count obj id zr s s2 z addr len m val;\
++        "_vararg_count obj id zr z s s2 addr len m n val;\
+            @copy sp obj;\
+            @copy sp id;\
+            _vararg_count = _vararg_count - 2;\
+@@ -1064,9 +1063,10 @@
+            }",
+         "  if (zr ~= 1)\
+              jump Call__Error;\
+-           #ifdef DEBUG;#ifdef InformLibrary;\
+-           if (debug_flag & 1 ~= 0) {\
+-             debug_flag--;\
++           #ifdef INFIX;if (obj has infix__watching) n=1;#endif;\
++           #ifdef DEBUG;#ifdef InformLibrary;if (debug_flag & 1 ~= 0) n=1;#endif;#endif;\
++           if (n==1) {\
++             #ifdef DEBUG_FLAG;n=debug_flag & 1; debug_flag=debug_flag-n;#endif;\
+              print \"[ ~\", (name) obj, \"~.\", (property) id, \"(\";\
+              @stkcopy _vararg_count;\
+              for (val=0 : val < _vararg_count : val++) {\
+@@ -1074,9 +1074,8 @@
+                @streamnum sp;\
+              }\
+              print \") ]^\";\
+-             debug_flag++;\
++             #ifdef DEBUG_FLAG;debug_flag = debug_flag + n;#endif;\
+            }\
+-           #endif;#endif;\
+            if (obj in Class) {\
+              switch (id) {\
+                remaining:\

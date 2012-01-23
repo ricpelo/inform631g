@@ -1,0 +1,116 @@
+Index: expressp.c
+===================================================================
+RCS file: /cygdrive/c/Temp/Inform6/cvsroot/inform/compiler/expressp.c,v
+retrieving revision 1.9
+retrieving revision 1.10
+diff -u -r1.9 -r1.10
+--- expressp.c	26 Aug 2004 18:56:08 -0000	1.9
++++ expressp.c	29 Aug 2004 21:58:13 -0000	1.10
+@@ -626,6 +626,84 @@
+     return grammar_table_offset;
+   case actions_table_SC:
+     return actions_offset;
++
++        case adjectives_table_SC:
++            return adjectives_offset;
++        case preactions_table_SC:
++            return preactions_offset;
++        case largest_object_SC:
++            return 256 + no_objects - 1;
++        case strings_offset_SC:
++            return strings_offset;
++        case code_offset_SC:
++            return code_offset;
++        case actual_largest_object_SC:
++            return no_objects;
++        case static_memory_offset_SC:
++            return static_memory_offset;
++        case readable_memory_offset_SC:
++            return Write_Code_At;
++        case ipv__start_SC:
++            return Write_RAM_At + individuals_offset;
++        case ipv__end_SC:
++            return variables_offset;
++        case array__start_SC:
++            return variables_offset + (MAX_GLOBAL_VARIABLES*WORDSIZE);
++        case array__end_SC:
++            return static_memory_offset;
++
++        case highest_attribute_number_SC:
++            return no_attributes-1;
++        case attribute_names_array_SC:
++            return Write_RAM_At + attribute_names_offset;
++
++        case highest_property_number_SC:
++            return no_individual_properties-1;
++        case property_names_array_SC:
++            return Write_RAM_At + identifier_names_offset + 32;
++
++        case highest_action_number_SC:
++            return no_actions-1;
++        case action_names_array_SC:
++            return Write_RAM_At + action_names_offset;
++
++        case highest_fake_action_number_SC:
++            return ((grammar_version_number==1)?256:4096) + no_fake_actions-1;
++        case fake_action_names_array_SC:
++            return Write_RAM_At + fake_action_names_offset;
++
++        case highest_routine_number_SC:
++            return no_named_routines-1;
++        case routine_names_array_SC:
++            return Write_RAM_At + routine_names_offset;
++        /*case routines_array_SC:
++            return routines_array_offset;*/
++        case routine_flags_array_SC:
++            return Write_RAM_At + routine_flags_array_offset;
++        case highest_global_number_SC:
++            return no_globals-1;
++        case global_names_array_SC:
++            return Write_RAM_At + global_names_offset;
++        case globals_array_SC:
++            return variables_offset;
++        /*case global_flags_array_SC:
++            return global_flags_array_offset;*/
++        case highest_array_number_SC:
++            return no_arrays-1;
++        case array_names_array_SC:
++            return Write_RAM_At + array_names_offset;
++        case array_flags_array_SC:
++            return array_flags_array_offset;
++        case highest_constant_number_SC:
++            return no_named_constants-1;
++        case constant_names_array_SC:
++            return Write_RAM_At + constant_names_offset;
++        case highest_class_number_SC:
++            return no_classes-1;
++        case class_objects_array_SC:
++            return Write_RAM_At + class_numbers_offset;
++        case highest_object_number_SC:
++            return no_objects-1;  
+   }
+ 
+   error_named("System constant not implemented in Glulx",
+@@ -797,6 +875,22 @@
+                      break;
+ 
+                  /* ###fix: need to fill more of these in! */
++                 case lowest_attribute_number_SC:
++                 case lowest_action_number_SC:
++                 case lowest_routine_number_SC:
++                 case lowest_array_number_SC:
++                 case lowest_constant_number_SC:
++                 case lowest_class_number_SC:
++                 case oddeven_packing_SC:
++                     o->type = BYTECONSTANT_OT; o->marker = 0; v = 0; break;
++                 case lowest_object_number_SC:
++                 case lowest_property_number_SC:
++                     o->type = BYTECONSTANT_OT; o->marker = 0; v = 1; break;
++                 case lowest_global_number_SC:
++                     o->type = BYTECONSTANT_OT; o->marker = 0; v = 0; break;
++                 case lowest_fake_action_number_SC:
++                     o->type = HALFCONSTANT_OT; o->marker = 0;
++                     v = ((grammar_version_number==1)?256:4096); break;
+ 
+                  default:
+                      v = t.value;

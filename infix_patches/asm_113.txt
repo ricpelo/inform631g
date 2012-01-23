@@ -1,0 +1,19 @@
+Index: asm.c
+===================================================================
+RCS file: /cygdrive/c/Temp/Inform6/cvsroot/inform/compiler/asm.c,v
+retrieving revision 1.12
+retrieving revision 1.13
+diff -u -r1.12 -r1.13
+--- asm.c	10 Sep 2004 22:00:17 -0000	1.12
++++ asm.c	20 Oct 2004 07:55:14 -0000	1.13
+@@ -1307,7 +1307,9 @@
+       /*  function is called, if it's required.                              */
+ 
+       if ((routine_asterisked) || (define_INFIX_switch))
+-      {   char fnt[80]; assembly_operand PV, RFA, CON, STP, SLF; int ln, ln2;
++      {   
++          char fnt[MAX_IDENTIFIER_LENGTH + 10]; 
++          assembly_operand PV, RFA, CON, STP, SLF; int ln, ln2;
+ 
+           ln = next_label++;
+           ln2 = next_label++;

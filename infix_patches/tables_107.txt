@@ -1,0 +1,127 @@
+Index: tables.c
+===================================================================
+RCS file: /cygdrive/c/Temp/Inform6/cvsroot/inform/compiler/tables.c,v
+retrieving revision 1.6
+retrieving revision 1.7
+diff -u -r1.6 -r1.7
+--- tables.c	23 Apr 2004 07:17:52 -0000	1.6
++++ tables.c	29 Aug 2004 22:21:48 -0000	1.7
+@@ -210,6 +210,8 @@
+     total += (NUM_ATTR_BYTES*8) * 4;
+     total += (no_actions + no_fake_actions) * 4;
+     total += 4 + no_arrays * 4;
++    total += (no_globals + no_named_routines + no_named_constants) * 4;
++    total += 4 + no_named_routines / 8;
+ 
+     total += 4 + no_Inform_verbs * 4; /* index of grammar tables */
+     total += grammar_lines_top; /* grammar tables */
+@@ -1317,13 +1319,13 @@
+     for (i=0; i<no_classes; i++) {
+       j = Write_RAM_At + object_tree_at +
+         (OBJECT_BYTE_LENGTH*(class_object_numbers[i]-1));
+-      WriteInt32(p+mark, j);
++      WriteInt32(p+mark, j);
+       mark += 4;
+     }
+     WriteInt32(p+mark, 0);
+     mark += 4;
+ 
+-    /* -------------------- Table of Property Names ------------------------ */
++    /* --------- Table of Property and Identifier Names -------------------- */
+ 
+     /* We try to format this bit with some regularity...
+        address of common properties
+@@ -1337,10 +1339,11 @@
+     */
+ 
+     identifier_names_offset = mark;
+-    mark += 32; /* eight pairs of values, to be filled in. */
++    mark += 32; /* four pairs of values, to be filled in. */
+ 
+     WriteInt32(p+identifier_names_offset+0, Write_RAM_At + mark);
+-    WriteInt32(p+identifier_names_offset+4, no_properties);
++    WriteInt32(p+identifier_names_offset+4, no_properties);
++    
+     for (i=0; i<no_properties; i++) {
+       j = individual_name_strings[i];
+       if (j)
+@@ -1351,7 +1354,7 @@
+ 
+     WriteInt32(p+identifier_names_offset+8, Write_RAM_At + mark);
+     WriteInt32(p+identifier_names_offset+12,
+-      no_individual_properties-INDIV_PROP_START);
++      no_individual_properties-INDIV_PROP_START);
+     for (i=INDIV_PROP_START; i<no_individual_properties; i++) {
+       j = individual_name_strings[i];
+       if (j)
+@@ -1362,6 +1365,7 @@
+ 
+     WriteInt32(p+identifier_names_offset+16, Write_RAM_At + mark);
+     WriteInt32(p+identifier_names_offset+20, NUM_ATTR_BYTES*8);
++    attribute_names_offset = mark;
+     for (i=0; i<NUM_ATTR_BYTES*8; i++) {
+       j = attribute_name_strings[i];
+       if (j)
+@@ -1375,23 +1379,41 @@
+     action_names_offset = mark;
+     fake_action_names_offset = mark + 4*no_actions;
+     for (i=0; i<no_actions + no_fake_actions; i++) {
+-      j = action_name_strings[i];
+-      if (j)
+-        j = Write_Strings_At + compressed_offsets[j-1];
+-      WriteInt32(p+mark, j);
+-      mark += 4;
++        j = action_name_strings[i];
++        if (j)
++            j = Write_Strings_At + compressed_offsets[j-1];
++        WriteInt32(p+mark, j);
++        mark += 4;
+     }
+ 
+-    array_names_offset = mark;
+     WriteInt32(p+mark, no_arrays);
+     mark += 4;
+-    for (i=0; i<no_arrays; i++) {
+-      j = array_name_strings[i];
+-      if (j)
+-        j = Write_Strings_At + compressed_offsets[j-1];
+-      WriteInt32(p+mark, j);
+-      mark += 4;
+-    }
++    array_names_offset = mark;
++    global_names_offset = mark + 4*no_arrays;
++    routine_names_offset = global_names_offset + 4*no_globals;
++    constant_names_offset = routine_names_offset + 4*no_named_routines;
++
++    for (i=0; i<no_arrays + no_globals
++                    + no_named_routines + no_named_constants; i++)
++    {   if ((i == no_arrays) && (define_INFIX_switch == FALSE)) break;
++        j = array_name_strings[i];
++        if (j)
++            j = Write_Strings_At + compressed_offsets[j-1];
++        WriteInt32(p+mark, j);
++        mark += 4;
++    }
++
++    routine_flags_array_offset = mark;
++
++    if (define_INFIX_switch)
++    {   for (i=0, k=1, l=0; i<no_named_routines; i++)
++        {   if (sflags[named_routine_symbols[i]] & STAR_SFLAG) l=l+k;
++            k=k*2;
++            if (k==256) { p[mark++] = l; k=1; l=0; }
++        }
++        if (k!=1) p[mark++]=l;
++    }
++    while (mark % 4 >0) mark++;
+ 
+     individuals_offset = mark;
+ 
+@@ -1442,7 +1464,6 @@
+ 
+     preactions_at = mark;
+     adjectives_offset = mark;
+-    dictionary_offset = mark;
+ 
+     /*  ------------------------- Dictionary ------------------------------- */
+ 
